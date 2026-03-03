@@ -1,4 +1,4 @@
-class User {
+class ChatUser {
   final String uid;
-  User({this.uid});
+  const ChatUser({required this.uid});
 }

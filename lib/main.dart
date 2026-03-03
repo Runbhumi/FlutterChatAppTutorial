@@ -1,21 +1,24 @@
 import 'package:chatapp/helper/authenticate.dart';
 import 'package:chatapp/helper/helperfunctions.dart';
 import 'package:chatapp/views/chatrooms.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
-  // This widget is the root of your application.
+  const MyApp({super.key});
+
   @override
-  _MyAppState createState() => _MyAppState();
+  State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-
-  bool userIsLoggedIn;
+  bool? userIsLoggedIn;
 
   @override
   void initState() {
@@ -24,9 +27,9 @@ class _MyAppState extends State<MyApp> {
   }
 
   getLoggedInState() async {
-    await HelperFunctions.getUserLoggedInSharedPreference().then((value){
+    await HelperFunctions.getUserLoggedInSharedPreference().then((value) {
       setState(() {
-        userIsLoggedIn  = value;
+        userIsLoggedIn = value;
       });
     });
   }
@@ -37,18 +40,22 @@ class _MyAppState extends State<MyApp> {
       title: 'FlutterChat',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primaryColor: Color(0xff145C9E),
-        scaffoldBackgroundColor: Color(0xff1F1F1F),
-        accentColor: Color(0xff007EF4),
+        primaryColor: const Color(0xff145C9E),
+        scaffoldBackgroundColor: const Color(0xff1F1F1F),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xff007EF4),
+          brightness: Brightness.dark,
+        ),
         fontFamily: "OverpassRegular",
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: userIsLoggedIn != null ?  userIsLoggedIn ? ChatRoom() : Authenticate()
-          : Container(
-        child: Center(
-          child: Authenticate(),
-        ),
-      ),
+      home: userIsLoggedIn != null
+          ? userIsLoggedIn!
+              ? const ChatRoom()
+              : const Authenticate()
+          : const Center(
+              child: Authenticate(),
+            ),
     );
   }
 }

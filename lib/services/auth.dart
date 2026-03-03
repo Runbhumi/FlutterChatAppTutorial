@@ -7,30 +7,32 @@ import 'package:google_sign_in/google_sign_in.dart';
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  User _userFromFirebaseUser(FirebaseUser user) {
-    return user != null ? User(uid: user.uid) : null;
+  ChatUser? _userFromFirebaseUser(User? user) {
+    return user != null ? ChatUser(uid: user.uid) : null;
   }
 
-  Future signInWithEmailAndPassword(String email, String password) async {
+  Future<ChatUser?> signInWithEmailAndPassword(
+      String email, String password) async {
     try {
-      AuthResult result = await _auth.signInWithEmailAndPassword(
+      UserCredential result = await _auth.signInWithEmailAndPassword(
           email: email, password: password);
-      FirebaseUser user = result.user;
+      User? user = result.user;
       return _userFromFirebaseUser(user);
     } catch (e) {
-      print(e.toString());
+      debugPrint(e.toString());
       return null;
     }
   }
 
-  Future signUpWithEmailAndPassword(String email, String password) async {
+  Future<ChatUser?> signUpWithEmailAndPassword(
+      String email, String password) async {
     try {
-      AuthResult result = await _auth.createUserWithEmailAndPassword(
+      UserCredential result = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
-      FirebaseUser user = result.user;
+      User? user = result.user;
       return _userFromFirebaseUser(user);
     } catch (e) {
-      print(e.toString());
+      debugPrint(e.toString());
       return null;
     }
   }
@@ -39,37 +41,42 @@ class AuthService {
     try {
       return await _auth.sendPasswordResetEmail(email: email);
     } catch (e) {
-      print(e.toString());
+      debugPrint(e.toString());
       return null;
     }
   }
 
-  Future<FirebaseUser> signInWithGoogle(BuildContext context) async {
-    final GoogleSignIn _googleSignIn = new GoogleSignIn();
+  Future<User?> signInWithGoogle(BuildContext context) async {
+    final GoogleSignIn googleSignIn = GoogleSignIn();
 
-    final GoogleSignInAccount googleSignInAccount =
-        await _googleSignIn.signIn();
+    final GoogleSignInAccount? googleSignInAccount =
+        await googleSignIn.signIn();
+    if (googleSignInAccount == null) return null;
+
     final GoogleSignInAuthentication googleSignInAuthentication =
         await googleSignInAccount.authentication;
 
-    final AuthCredential credential = GoogleAuthProvider.getCredential(
+    final AuthCredential credential = GoogleAuthProvider.credential(
         idToken: googleSignInAuthentication.idToken,
         accessToken: googleSignInAuthentication.accessToken);
 
-    AuthResult result = await _auth.signInWithCredential(credential);
-    FirebaseUser userDetails = result.user;
+    UserCredential result = await _auth.signInWithCredential(credential);
+    User? userDetails = result.user;
 
-    if (result == null) {
-    } else {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => Chat()));
+    if (userDetails != null && context.mounted) {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const Chat(chatRoomId: '')));
     }
+    return userDetails;
   }
 
   Future signOut() async {
     try {
       return await _auth.signOut();
     } catch (e) {
-      print(e.toString());
+      debugPrint(e.toString());
       return null;
     }
   }

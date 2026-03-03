@@ -5,30 +5,29 @@ import 'package:chatapp/services/database.dart';
 import 'package:chatapp/views/chatrooms.dart';
 import 'package:chatapp/views/forgot_password.dart';
 import 'package:chatapp/widget/widget.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class SignIn extends StatefulWidget {
   final Function toggleView;
 
-  SignIn(this.toggleView);
+  const SignIn(this.toggleView, {super.key});
 
   @override
-  _SignInState createState() => _SignInState();
+  State<SignIn> createState() => _SignInState();
 }
 
 class _SignInState extends State<SignIn> {
-  TextEditingController emailEditingController = new TextEditingController();
-  TextEditingController passwordEditingController = new TextEditingController();
+  TextEditingController emailEditingController = TextEditingController();
+  TextEditingController passwordEditingController = TextEditingController();
 
-  AuthService authService = new AuthService();
+  AuthService authService = AuthService();
 
   final formKey = GlobalKey<FormState>();
 
   bool isLoading = false;
 
   signIn() async {
-    if (formKey.currentState.validate()) {
+    if (formKey.currentState!.validate()) {
       setState(() {
         isLoading = true;
       });
@@ -37,22 +36,25 @@ class _SignInState extends State<SignIn> {
           .signInWithEmailAndPassword(
               emailEditingController.text, passwordEditingController.text)
           .then((result) async {
-        if (result != null)  {
-          QuerySnapshot userInfoSnapshot =
+        if (result != null) {
+          final userInfoSnapshot =
               await DatabaseMethods().getUserInfo(emailEditingController.text);
 
           HelperFunctions.saveUserLoggedInSharedPreference(true);
           HelperFunctions.saveUserNameSharedPreference(
-              userInfoSnapshot.documents[0].data["userName"]);
+              (userInfoSnapshot.docs[0].data()
+                  as Map<String, dynamic>)["userName"]);
           HelperFunctions.saveUserEmailSharedPreference(
-              userInfoSnapshot.documents[0].data["userEmail"]);
+              (userInfoSnapshot.docs[0].data()
+                  as Map<String, dynamic>)["userEmail"]);
 
-          Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (context) => ChatRoom()));
+          if (mounted) {
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) => const ChatRoom()));
+          }
         } else {
           setState(() {
             isLoading = false;
-            //show snackbar
           });
         }
       });
@@ -64,14 +66,12 @@ class _SignInState extends State<SignIn> {
     return Scaffold(
       appBar: appBarMain(context),
       body: isLoading
-          ? Container(
-              child: Center(child: CircularProgressIndicator()),
-            )
+          ? const Center(child: CircularProgressIndicator())
           : Container(
-              padding: EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 children: [
-                  Spacer(),
+                  const Spacer(),
                   Form(
                     key: formKey,
                     child: Column(
@@ -80,7 +80,7 @@ class _SignInState extends State<SignIn> {
                           validator: (val) {
                             return RegExp(
                                         r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-                                    .hasMatch(val)
+                                    .hasMatch(val ?? "")
                                 ? null
                                 : "Please Enter Correct Email";
                           },
@@ -91,7 +91,7 @@ class _SignInState extends State<SignIn> {
                         TextFormField(
                           obscureText: true,
                           validator: (val) {
-                            return val.length > 6
+                            return (val ?? "").length > 6
                                 ? null
                                 : "Enter Password 6+ characters";
                           },
@@ -102,7 +102,7 @@ class _SignInState extends State<SignIn> {
                       ],
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 16,
                   ),
                   Row(
@@ -113,10 +113,11 @@ class _SignInState extends State<SignIn> {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => ForgotPassword()));
+                                  builder: (context) =>
+                                      const ForgotPassword()));
                         },
                         child: Container(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 8),
                             child: Text(
                               "Forgot Password?",
@@ -125,7 +126,7 @@ class _SignInState extends State<SignIn> {
                       )
                     ],
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 16,
                   ),
                   GestureDetector(
@@ -133,13 +134,13 @@ class _SignInState extends State<SignIn> {
                       signIn();
                     },
                     child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(30),
-                          gradient: LinearGradient(
+                          gradient: const LinearGradient(
                             colors: [
-                              const Color(0xff007EF4),
-                              const Color(0xff2A75BC)
+                              Color(0xff007EF4),
+                              Color(0xff2A75BC)
                             ],
                           )),
                       width: MediaQuery.of(context).size.width,
@@ -150,23 +151,23 @@ class _SignInState extends State<SignIn> {
                       ),
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 16,
                   ),
                   Container(
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(30),
                         color: Colors.white),
                     width: MediaQuery.of(context).size.width,
-                    child: Text(
+                    child: const Text(
                       "Sign In with Google",
-                      style:
-                          TextStyle(fontSize: 17, color: CustomTheme.textColor),
+                      style: TextStyle(
+                          fontSize: 17, color: CustomTheme.textColor),
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 16,
                   ),
                   Row(
@@ -180,7 +181,7 @@ class _SignInState extends State<SignIn> {
                         onTap: () {
                           widget.toggleView();
                         },
-                        child: Text(
+                        child: const Text(
                           "Register now",
                           style: TextStyle(
                               color: Colors.white,
@@ -190,7 +191,7 @@ class _SignInState extends State<SignIn> {
                       ),
                     ],
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 50,
                   )
                 ],

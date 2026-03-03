@@ -9,12 +9,14 @@ import 'package:chatapp/views/search.dart';
 import 'package:flutter/material.dart';
 
 class ChatRoom extends StatefulWidget {
+  const ChatRoom({super.key});
+
   @override
-  _ChatRoomState createState() => _ChatRoomState();
+  State<ChatRoom> createState() => _ChatRoomState();
 }
 
 class _ChatRoomState extends State<ChatRoom> {
-  Stream chatRooms;
+  Stream? chatRooms;
 
   Widget chatRoomsList() {
     return StreamBuilder(
@@ -22,15 +24,17 @@ class _ChatRoomState extends State<ChatRoom> {
       builder: (context, snapshot) {
         return snapshot.hasData
             ? ListView.builder(
-                itemCount: snapshot.data.documents.length,
+                itemCount: snapshot.data!.docs.length,
                 shrinkWrap: true,
                 itemBuilder: (context, index) {
                   return ChatRoomsTile(
-                    userName: snapshot.data.documents[index].data['chatRoomId']
+                    userName: snapshot.data!.docs[index]
+                        .data()['chatRoomId']
                         .toString()
                         .replaceAll("_", "")
                         .replaceAll(Constants.myName, ""),
-                    chatRoomId: snapshot.data.documents[index].data["chatRoomId"],
+                    chatRoomId:
+                        snapshot.data!.docs[index].data()["chatRoomId"],
                   );
                 })
             : Container();
@@ -45,11 +49,12 @@ class _ChatRoomState extends State<ChatRoom> {
   }
 
   getUserInfogetChats() async {
-    Constants.myName = await HelperFunctions.getUserNameSharedPreference();
+    Constants.myName =
+        await HelperFunctions.getUserNameSharedPreference() ?? "";
     DatabaseMethods().getUserChats(Constants.myName).then((snapshots) {
       setState(() {
         chatRooms = snapshots;
-        print(
+        debugPrint(
             "we got the data + ${chatRooms.toString()} this is name  ${Constants.myName}");
       });
     });
@@ -70,23 +75,21 @@ class _ChatRoomState extends State<ChatRoom> {
             onTap: () {
               AuthService().signOut();
               Navigator.pushReplacement(context,
-                  MaterialPageRoute(builder: (context) => Authenticate()));
+                  MaterialPageRoute(builder: (context) => const Authenticate()));
             },
             child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Icon(Icons.exit_to_app)),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: const Icon(Icons.exit_to_app)),
           )
         ],
       ),
-      body: Container(
-        child: chatRoomsList(),
-      ),
+      body: chatRoomsList(),
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.search),
         onPressed: () {
           Navigator.push(
-              context, MaterialPageRoute(builder: (context) => Search()));
+              context, MaterialPageRoute(builder: (context) => const Search()));
         },
+        child: const Icon(Icons.search),
       ),
     );
   }
@@ -96,21 +99,23 @@ class ChatRoomsTile extends StatelessWidget {
   final String userName;
   final String chatRoomId;
 
-  ChatRoomsTile({this.userName,@required this.chatRoomId});
+  const ChatRoomsTile(
+      {super.key, required this.userName, required this.chatRoomId});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: (){
-        Navigator.push(context, MaterialPageRoute(
-          builder: (context) => Chat(
-            chatRoomId: chatRoomId,
-          )
-        ));
+      onTap: () {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => Chat(
+                      chatRoomId: chatRoomId,
+                    )));
       },
       child: Container(
         color: Colors.black26,
-        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         child: Row(
           children: [
             Container(
@@ -121,18 +126,18 @@ class ChatRoomsTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(30)),
               child: Text(userName.substring(0, 1),
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
                       fontFamily: 'OverpassRegular',
                       fontWeight: FontWeight.w300)),
             ),
-            SizedBox(
+            const SizedBox(
               width: 12,
             ),
             Text(userName,
                 textAlign: TextAlign.start,
-                style: TextStyle(
+                style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
                     fontFamily: 'OverpassRegular',
